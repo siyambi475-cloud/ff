@@ -7,24 +7,28 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #0f172a; color: white; }
+        body { background-color: #0f172a; color: white; font-family: sans-serif; }
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); }
+        .btn-join { background: linear-gradient(90deg, #ea580c, #f97316); }
     </style>
 </head>
-<body class="pb-20">
+<body class="pb-32">
 
     <div class="p-5 flex items-center bg-slate-900 sticky top-0 z-50 shadow-lg">
         <button onclick="history.back()" class="text-xl mr-4"><i class="fas fa-arrow-left"></i></button>
-        <h1 class="text-xl font-bold uppercase tracking-wider">Match Details</h1>
+        <h1 class="text-xl font-bold uppercase tracking-widest">Match Details</h1>
     </div>
 
     <div id="matchContent" class="p-5 max-w-md mx-auto space-y-6">
-        <p class="text-center py-20 italic opacity-50">ম্যাচ তথ্য লোড হচ্ছে...</p>
+        <div class="text-center py-20">
+            <div class="animate-spin text-orange-500 text-4xl mb-4"><i class="fas fa-circle-notch"></i></div>
+            <p class="opacity-50 italic">ম্যাচ তথ্য লোড হচ্ছে...</p>
+        </div>
     </div>
 
     <div id="joinSection" class="fixed bottom-0 left-0 right-0 p-4 bg-slate-900 border-t border-slate-800 hidden">
-        <input type="text" id="gameIdInput" placeholder="আপনার গেম আইডি (In-game ID) দিন" class="w-full p-4 mb-3 bg-slate-800 border border-slate-700 rounded-2xl text-white outline-none">
-        <button id="joinBtn" class="w-full bg-orange-600 py-4 rounded-2xl font-bold shadow-lg shadow-orange-900 active:scale-95 transition">JOIN NOW</button>
+        <input type="text" id="gameIdInput" placeholder="আপনার গেম আইডি (In-game ID) দিন" class="w-full p-4 mb-3 bg-slate-800 border border-slate-700 rounded-2xl text-white outline-none focus:border-orange-500">
+        <button id="joinBtn" class="w-full btn-join py-4 rounded-2xl font-bold shadow-lg shadow-orange-900/40 active:scale-95 transition-transform uppercase tracking-wider">Join Now</button>
     </div>
 
     <script type="module">
@@ -49,113 +53,152 @@
         const matchId = urlParams.get('id');
         let matchData = null;
 
-        // ১. ম্যাচের তথ্য লোড করা
-        async function loadMatchDetails() {
+        async function init() {
             if(!matchId) return;
-            const docRef = doc(db, "tournaments", matchId);
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                matchData = docSnap.data();
-                renderMatch();
-                checkUserStatus(); // ইউজার জয়েন করেছে কিনা চেক
+            const mSnap = await getDoc(doc(db, "tournaments", matchId));
+            
+            if (mSnap.exists()) {
+                matchData = mSnap.data();
+                
+                // চেক করা ইউজার জয়েন করেছে কিনা
+                onAuthStateChanged(auth, async (user) => {
+                    let isJoined = false;
+                    if(user) {
+                        const q = query(collection(db, "joined_players"), 
+                                        where("matchId", "==", matchId), 
+                                        where("userId", "==", user.uid));
+                        const snap = await getDocs(q);
+                        isJoined = !snap.empty;
+                    }
+                    renderUI(isJoined);
+                });
+            } else {
+                document.getElementById('matchContent').innerHTML = "<p class='text-center py-20'>ম্যাচটি খুঁজে পাওয়া যায়নি!</p>";
             }
         }
 
-        function renderMatch() {
+        function renderUI(isJoined) {
+            const leftSlots = (matchData.totalSlots || 0) - (matchData.joinedCount || 0);
+            
             document.getElementById('matchContent').innerHTML = `
                 <div class="glass p-6 rounded-[2rem] border border-slate-700 shadow-2xl">
                     <h2 class="text-2xl font-black text-orange-500 mb-4">${matchData.title}</h2>
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                            <p class="text-slate-400">এন্ট্রি ফি</p>
-                            <p class="font-bold text-lg">৳${matchData.fee}</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 bg-slate-800/50 rounded-2xl border border-slate-700">
+                            <p class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">এন্ট্রি ফি</p>
+                            <p class="text-xl font-bold">৳${matchData.fee}</p>
                         </div>
-                        <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                            <p class="text-slate-400">উইনার প্রাইজ</p>
-                            <p class="font-bold text-lg text-green-500">৳${matchData.prize}</p>
+                        <div class="p-4 bg-slate-800/50 rounded-2xl border border-slate-700">
+                            <p class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">স্লট বাকি</p>
+                            <p class="text-xl font-bold ${leftSlots <= 5 ? 'text-red-500' : 'text-green-400'}">${leftSlots} / ${matchData.totalSlots || '0'}</p>
                         </div>
-                        <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                            <p class="text-slate-400">পার কিল</p>
-                            <p class="font-bold text-lg">৳${matchData.perkill}</p>
+                        <div class="p-4 bg-slate-800/50 rounded-2xl border border-slate-700">
+                            <p class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">উইনার প্রাইজ</p>
+                            <p class="text-lg font-bold">৳${matchData.prize}</p>
                         </div>
-                        <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                            <p class="text-slate-400">ম্যাপ</p>
-                            <p class="font-bold text-lg">${matchData.mode}</p>
+                        <div class="p-4 bg-slate-800/50 rounded-2xl border border-slate-700">
+                            <p class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">পার কিল</p>
+                            <p class="text-lg font-bold">৳${matchData.perkill}</p>
                         </div>
                     </div>
-                    <div class="mt-6 p-4 bg-indigo-900/30 border border-indigo-500/20 rounded-2xl">
-                        <p class="text-xs text-indigo-300"><i class="far fa-clock mr-2"></i>ম্যাচ টাইম: ${matchData.time}</p>
+                    <div class="mt-4 p-3 bg-slate-900/50 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+                         <span class="opacity-70"><i class="fas fa-calendar-alt mr-2 text-orange-500"></i>সময়: ${matchData.time}</span>
+                         <span class="bg-orange-600/20 text-orange-500 px-2 py-1 rounded-lg">${matchData.mode}</span>
                     </div>
                 </div>
-                
-                ${matchData.roomId ? `
-                <div class="bg-green-900/20 border border-green-500/30 p-6 rounded-3xl text-center">
-                    <p class="text-green-500 font-bold mb-2 uppercase tracking-widest text-xs">Room Details</p>
-                    <p class="text-xl font-mono">ID: ${matchData.roomId} | PASS: ${matchData.roomPass}</p>
-                </div>` : ''}
+
+                <div class="mt-6">
+                    ${isJoined && (matchData.roomId || matchData.roomPass) ? `
+                        <div class="bg-green-600/20 border border-green-500/50 p-6 rounded-3xl text-center shadow-lg">
+                            <p class="text-green-500 font-bold mb-3 uppercase tracking-widest text-xs">Room Information</p>
+                            <div class="flex flex-col gap-2">
+                                <div class="bg-slate-900/80 py-2 px-4 rounded-xl border border-green-500/20">
+                                    <span class="text-[10px] opacity-60">ROOM ID:</span>
+                                    <p class="text-xl font-mono font-bold tracking-widest text-white">${matchData.roomId || 'N/A'}</p>
+                                </div>
+                                <div class="bg-slate-900/80 py-2 px-4 rounded-xl border border-green-500/20">
+                                    <span class="text-[10px] opacity-60">PASSWORD:</span>
+                                    <p class="text-xl font-mono font-bold tracking-widest text-white">${matchData.roomPass || 'N/A'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="bg-slate-800/30 border border-dashed border-slate-700 p-8 rounded-3xl text-center">
+                            <i class="fas fa-lock text-slate-600 text-3xl mb-3"></i>
+                            <p class="text-slate-400 text-xs italic">রুম আইডি এবং পাসওয়ার্ড পেতে আগে জয়েন করুন। ম্যাচ শুরু হওয়ার ১০ মিনিট আগে এখানে ডাটা দেওয়া হবে।</p>
+                        </div>
+                    `}
+                </div>
             `;
+
+            const jBtn = document.getElementById('joinBtn');
             document.getElementById('joinSection').classList.remove('hidden');
+
+            // বাটন স্টেট আপডেট
+            if(isJoined) {
+                jBtn.innerText = "Already Joined";
+                jBtn.disabled = true;
+                jBtn.className = "w-full bg-slate-700 py-4 rounded-2xl font-bold opacity-70 cursor-not-allowed";
+                document.getElementById('gameIdInput').classList.add('hidden');
+            } else if (leftSlots <= 0) {
+                jBtn.innerText = "Match Full";
+                jBtn.disabled = true;
+                jBtn.className = "w-full bg-red-900 py-4 rounded-2xl font-bold opacity-70 cursor-not-allowed";
+                document.getElementById('gameIdInput').classList.add('hidden');
+            }
         }
 
-        // ২. চেক করা ইউজার ইতিমধ্যে জয়েন করেছে কি না
-        async function checkUserStatus() {
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    const q = query(collection(db, "joined_players"), 
-                                    where("matchId", "==", matchId), 
-                                    where("userId", "==", user.uid));
-                    const querySnapshot = await getDocs(q);
-
-                    if (!querySnapshot.empty) {
-                        const btn = document.getElementById('joinBtn');
-                        btn.innerText = "ALREADY JOINED";
-                        btn.disabled = true;
-                        btn.classList.replace('bg-orange-600', 'bg-slate-700');
-                        document.getElementById('gameIdInput').classList.add('hidden');
-                    }
-                }
-            });
-        }
-
-        // ৩. জয়েন বাটন লজিক
+        // জয়েন বাটন ক্লিক লজিক
         document.getElementById('joinBtn').onclick = async () => {
-            if(!auth.currentUser) return alert("দয়া করে লগইন করুন!");
-            const gameId = document.getElementById('gameIdInput').value;
-            if(!gameId) return alert("গেম আইডি দিন!");
+            const user = auth.currentUser;
+            if(!user) return alert("দয়া করে আগে লগইন করুন!");
+            
+            const gId = document.getElementById('gameIdInput').value.trim();
+            if(!gId) return alert("আপনার ইন-গেম আইডি (In-game ID) দিন!");
 
-            const userRef = doc(db, "users", auth.currentUser.uid);
-            const userSnap = await getDoc(userRef);
-            const balance = userSnap.data().wallet || 0;
+            try {
+                // ১. ইউজারের ব্যালেন্স আনা
+                const uRef = doc(db, "users", user.uid);
+                const uSnap = await getDoc(uRef);
+                const currentBalance = Number(uSnap.data().wallet || 0);
+                const entryFee = Number(matchData.fee);
 
-            if(balance < matchData.fee) return alert("ব্যালেন্স নেই, টাকা অ্যাড করুন!");
+                if(currentBalance < entryFee) {
+                    return alert("আপনার ব্যালেন্স পর্যাপ্ত নয়! দয়া করে ওয়ালেটে টাকা অ্যাড করুন।");
+                }
 
-            if(confirm(`৳${matchData.fee} দিয়ে জয়েন করবেন?`)) {
-                try {
-                    // ডাবল চেক: ক্লিক করার মুহূর্তেও চেক করবে যাতে নেট স্লো হলেও ডুপ্লিকেট না হয়
-                    const q = query(collection(db, "joined_players"), 
-                                    where("matchId", "==", matchId), 
-                                    where("userId", "==", auth.currentUser.uid));
-                    const doubleCheck = await getDocs(q);
-                    if(!doubleCheck.empty) return alert("আপনি ইতিমধ্যে জয়েন করেছেন!");
+                if(confirm(`আপনি কি ৳${entryFee} দিয়ে জয়েন করতে চান?`)) {
+                    // ২. স্লট ফুল কিনা আবার চেক করা (সরাসরি সার্ভার থেকে)
+                    const mRef = doc(db, "tournaments", matchId);
+                    const freshMSnap = await getDoc(mRef);
+                    const freshData = freshMSnap.data();
+                    
+                    if(freshData.joinedCount >= freshData.totalSlots) {
+                        return alert("দুঃখিত, এই মুহূর্তেই সব স্লট ফুল হয়ে গেছে!");
+                    }
 
-                    // টাকা কাটা এবং ডাটা সেভ
-                    await updateDoc(userRef, { wallet: increment(-matchData.fee) });
+                    // ৩. টাকা কাটা এবং জয়েন প্রসেস
+                    await updateDoc(uRef, { wallet: increment(-entryFee) });
+                    await updateDoc(mRef, { joinedCount: increment(1) });
+                    
                     await addDoc(collection(db, "joined_players"), {
                         matchId: matchId,
-                        userId: auth.currentUser.uid,
-                        playerName: userSnap.data().name,
-                        gameId: gameId,
+                        userId: user.uid,
+                        playerName: uSnap.data().name,
+                        gameId: gId,
                         time: new Date().toLocaleString()
                     });
 
-                    alert("সফলভাবে জয়েন করেছেন!");
+                    alert("ম্যাচে জয়েনিং সফল হয়েছে!");
                     location.reload();
-                } catch (e) { alert(e.message); }
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("কিছু একটা ভুল হয়েছে! আবার চেষ্টা করুন।");
             }
         };
 
-        loadMatchDetails();
+        init();
     </script>
 </body>
 </html>
