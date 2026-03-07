@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>Master Admin - FF Tournament</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="flex h-screen">
+        <div class="w-64 bg-indigo-900 text-white p-6 space-y-8">
+            <h1 class="text-2xl font-black italic">FF ADMIN</h1>
+            <nav class="space-y-4">
+                <a href="#" class="block p-3 bg-indigo-700 rounded-lg"><i class="fas fa-home mr-2"></i> Dashboard</a>
+                <a href="#" class="block p-3 hover:bg-indigo-800 rounded-lg"><i class="fas fa-users mr-2"></i> User List</a>
+                <a href="#" class="block p-3 hover:bg-indigo-800 rounded-lg"><i class="fas fa-history mr-2"></i> Reports</a>
+            </nav>
+        </div>
+
+        <div class="flex-1 p-8 overflow-y-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                    <h2 class="text-xl font-bold mb-4 text-indigo-900 border-b pb-2">নতুন টুর্নামেন্ট তৈরি</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="text" id="tTitle" placeholder="ম্যাচ নাম" class="p-3 border rounded-lg outline-none">
+                        <input type="number" id="tFee" placeholder="এন্ট্রি ফি (৳)" class="p-3 border rounded-lg outline-none">
+                        <input type="number" id="tPrize" placeholder="প্রাইজ পুল (৳)" class="p-3 border rounded-lg outline-none">
+                        <select id="tMode" class="p-3 border rounded-lg outline-none">
+                            <option value="Solo">Solo</option>
+                            <option value="Duo">Duo</option>
+                            <option value="Squad">Squad</option>
+                        </select>
+                        <input type="datetime-local" id="tTime" class="p-3 border rounded-lg outline-none col-span-2">
+                        <input type="number" id="tSlots" placeholder="মোট স্লট" class="p-3 border rounded-lg outline-none col-span-2">
+                    </div>
+                    <button id="btnPublish" class="mt-4 w-full bg-indigo-600 text-white p-3 rounded-xl font-bold hover:bg-indigo-700">ম্যাচ পাবলিশ করুন</button>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                    <h2 class="text-xl font-bold mb-4 text-green-600 border-b pb-2">পেন্ডিং পেমেন্ট রিকোয়েস্ট</h2>
+                    <div id="requestList" class="space-y-4">
+                        <p class="text-center text-gray-400 py-10 italic">কোনো নতুন রিকোয়েস্ট নেই...</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, increment, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDB15lIz0BwUaErArj-ooETB79iPCZK3D4",
+            authDomain: "bot-864b3.firebaseapp.com",
+            projectId: "bot-864b3",
+            storageBucket: "bot-864b3.firebasestorage.app",
+            messagingSenderId: "82198701869",
+            appId: "1:82198701869:web:3c099992e1c64e285355a4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // ১. নতুন টুর্নামেন্ট তৈরি
+        document.getElementById('btnPublish').onclick = async () => {
+            const title = document.getElementById('tTitle').value;
+            const fee = document.getElementById('tFee').value;
+            const prize = document.getElementById('tPrize').value;
+            const mode = document.getElementById('tMode').value;
+            const time = document.getElementById('tTime').value;
+            const slots = document.getElementById('tSlots').value;
+
+            try {
+                await addDoc(collection(db, "tournaments"), {
+                    title, fee, prize, mode, time, slots, status: "Upcoming"
+                });
+                alert("ম্যাচ সফলভাবে পাবলিশ হয়েছে!");
+                location.reload();
+            } catch (e) { alert(e.message); }
+        };
+
+        // ২. পেমেন্ট রিকোয়েস্ট লোড এবং অ্যাপ্রুভ
+        async function loadRequests() {
+            const q = query(collection(db, "deposit_requests"), where("status", "==", "Pending"));
+            const querySnapshot = await getDocs(q);
+            const container = document.getElementById('requestList');
+            
+            if (!querySnapshot.empty) container.innerHTML = "";
+
+            querySnapshot.forEach((docSnap) => {
+                const req = docSnap.data();
+                const div = document.createElement('div');
+                div.className = "bg-gray-50 p-4 rounded-lg border flex justify-between items-center";
+                div.innerHTML = `
+                    <div>
+                        <p class="font-bold text-sm">${req.method} - ৳${req.amount}</p>
+                        <p class="text-[10px] text-gray-500 font-mono italic">Trx: ${req.trxid}</p>
+                    </div>
+                    <button class="bg-green-600 text-white text-xs px-3 py-1 rounded" onclick="approvePayment('${docSnap.id}', '${req.userId}', ${req.amount})">Approve</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // ৩. পেমেন্ট অ্যাপ্রুভ লজিক
+        window.approvePayment = async (docId, userId, amount) => {
+            try {
+                // ইউজারের ওয়ালেটে টাকা যোগ করা
+                const userRef = doc(db, "users", userId);
+                await updateDoc(userRef, {
+                    wallet: increment(amount)
+                });
+
+                // রিকোয়েস্ট স্ট্যাটাস আপডেট বা ডিলিট করা
+                await deleteDoc(doc(db, "deposit_requests", docId));
+                
+                alert("পেমেন্ট অ্যাপ্রুভ হয়েছে!");
+                location.reload();
+            } catch (e) { alert(e.message); }
+        };
+
+        loadRequests();
+    </script>
+</body>
+</html>
