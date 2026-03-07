@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - FF Tournament</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-white">
+
+    <div class="p-4 bg-gray-800 flex items-center shadow-lg">
+        <i class="fas fa-arrow-left mr-4 cursor-pointer" onclick="window.location.href='index.html'"></i>
+        <h2 class="text-xl font-bold uppercase">My Profile</h2>
+    </div>
+
+    <div class="p-6 flex flex-col items-center">
+        <div class="w-24 h-24 bg-orange-600 rounded-full flex items-center justify-center mb-4 shadow-xl">
+            <i class="fas fa-user text-4xl text-white"></i>
+        </div>
+        <h3 id="displayName" class="text-2xl font-bold">User Name</h3>
+        <p id="displayEmail" class="text-gray-400 text-sm mb-6">user@email.com</p>
+
+        <div class="grid grid-cols-2 gap-4 w-full mb-8">
+            <div class="bg-gray-800 p-4 rounded-2xl text-center border border-gray-700">
+                <p class="text-xs text-gray-500 uppercase">মোট ব্যালেন্স</p>
+                <p class="text-xl font-bold text-orange-500 italic">৳ <span id="userWallet">0</span></p>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-2xl text-center border border-gray-700">
+                <p class="text-xs text-gray-500 uppercase">ম্যাচ খেলেছেন</p>
+                <p id="matchCount" class="text-xl font-bold text-white italic">0</p>
+            </div>
+        </div>
+
+        <div class="w-full space-y-4 bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg">
+            <h4 class="font-bold text-orange-500 border-b border-gray-700 pb-2 mb-4">গেম আইডি আপডেট করুন</h4>
+            
+            <div>
+                <label class="text-xs text-gray-500 uppercase">ফ্রি ফায়ার UID</label>
+                <input type="text" id="inputUID" class="w-full p-3 bg-gray-900 rounded-lg border border-gray-600 outline-none focus:border-orange-500 mt-1">
+            </div>
+
+            <button id="btnUpdate" class="w-full bg-orange-600 hover:bg-orange-700 p-3 rounded-xl font-bold transition">
+                সেভ করুন
+            </button>
+        </div>
+
+        <button id="btnLogout" class="mt-10 text-red-500 font-bold flex items-center">
+            <i class="fas fa-sign-out-alt mr-2"></i> লগআউট করুন
+        </button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDB15lIz0BwUaErArj-ooETB79iPCZK3D4",
+            authDomain: "bot-864b3.firebaseapp.com",
+            projectId: "bot-864b3",
+            storageBucket: "bot-864b3.firebasestorage.app",
+            messagingSenderId: "82198701869",
+            appId: "1:82198701869:web:3c099992e1c64e285355a4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+                    document.getElementById('displayName').innerText = data.name;
+                    document.getElementById('displayEmail').innerText = data.email;
+                    document.getElementById('userWallet').innerText = data.wallet;
+                    document.getElementById('inputUID').value = data.ff_uid || "";
+                    document.getElementById('matchCount').innerText = data.joinedMatches ? data.joinedMatches.length : 0;
+                }
+            } else {
+                window.location.href = "auth.html";
+            }
+        });
+
+        // প্রোফাইল আপডেট
+        document.getElementById('btnUpdate').onclick = async () => {
+            const newUID = document.getElementById('inputUID').value;
+            if (!newUID) return alert("UID লিখুন!");
+
+            try {
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    ff_uid: newUID
+                });
+                alert("প্রোফাইল আপডেট হয়েছে!");
+            } catch (e) { alert(e.message); }
+        };
+
+        // লগআউট লজিক
+        document.getElementById('btnLogout').onclick = () => {
+            signOut(auth).then(() => {
+                window.location.href = "auth.html";
+            });
+        };
+    </script>
+</body>
+</html>
