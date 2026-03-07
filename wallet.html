@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wallet - Add Money</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-white pb-10">
+
+    <div class="p-4 bg-gray-800 flex items-center shadow-lg">
+        <i class="fas fa-arrow-left mr-4 cursor-pointer" onclick="window.location.href='index.html'"></i>
+        <h2 class="text-xl font-bold uppercase">My Wallet</h2>
+    </div>
+
+    <div class="p-4 space-y-6">
+        <div class="bg-gradient-to-br from-gray-800 to-gray-700 p-8 rounded-3xl text-center border border-gray-600 shadow-2xl">
+            <p class="text-gray-400 text-sm mb-1 uppercase tracking-widest">বর্তমান ব্যালেন্স</p>
+            <h1 class="text-5xl font-black text-orange-500">৳ <span id="displayBalance">0</span></h1>
+        </div>
+
+        <div class="bg-blue-900/30 border border-blue-500/50 p-4 rounded-xl">
+            <h4 class="text-blue-400 font-bold mb-2 text-sm"><i class="fas fa-info-circle mr-2"></i>টাকা অ্যাড করার নিয়ম:</h4>
+            <ul class="text-xs space-y-1 text-gray-300">
+                <li>১. নিচের যেকোনো নাম্বারে "Send Money" করুন।</li>
+                <li>২. এরপর টাকার পরিমাণ ও Transaction ID দিয়ে সাবমিট করুন।</li>
+                <li>৩. ৫-৩০ মিনিটের মধ্যে টাকা অ্যাড হয়ে যাবে।</li>
+            </ul>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-gray-800 p-3 rounded-xl border border-pink-500/30">
+                <p class="text-[10px] text-pink-500 font-bold uppercase">Bkash (Personal)</p>
+                <p class="text-sm font-mono">017XXXXXXXX</p>
+            </div>
+            <div class="bg-gray-800 p-3 rounded-xl border border-orange-500/30">
+                <p class="text-[10px] text-orange-500 font-bold uppercase">Nagad (Personal)</p>
+                <p class="text-sm font-mono">018XXXXXXXX</p>
+            </div>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700">
+            <h3 class="font-bold mb-4">টাকা অ্যাড করার রিকোয়েস্ট</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-gray-400">পেমেন্ট মেথড</label>
+                    <select id="method" class="w-full p-3 bg-gray-900 rounded-lg border border-gray-600 focus:border-orange-500 outline-none">
+                        <option value="Bkash">Bkash</option>
+                        <option value="Nagad">Nagad</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400">টাকার পরিমাণ</label>
+                    <input type="number" id="amount" placeholder="যেমন: ১০০" class="w-full p-3 bg-gray-900 rounded-lg border border-gray-600 outline-none focus:border-orange-500">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400">Transaction ID (TrxID)</label>
+                    <input type="text" id="trxid" placeholder="8N7X2W..." class="w-full p-3 bg-gray-900 rounded-lg border border-gray-600 outline-none focus:border-orange-500 uppercase">
+                </div>
+                <button id="btnDeposit" class="w-full bg-orange-600 hover:bg-orange-700 p-4 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
+                    সাবমিট রিকোয়েস্ট
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDB15lIz0BwUaErArj-ooETB79iPCZK3D4",
+            authDomain: "bot-864b3.firebaseapp.com",
+            projectId: "bot-864b3",
+            storageBucket: "bot-864b3.firebasestorage.app",
+            messagingSenderId: "82198701869",
+            appId: "1:82198701869:web:3c099992e1c64e285355a4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    document.getElementById('displayBalance').innerText = userDoc.data().wallet;
+                }
+            } else {
+                window.location.href = "auth.html";
+            }
+        });
+
+        document.getElementById('btnDeposit').onclick = async () => {
+            const amount = document.getElementById('amount').value;
+            const trxid = document.getElementById('trxid').value;
+            const method = document.getElementById('method').value;
+
+            if (!amount || !trxid) return alert("অনুগ্রহ করে সব তথ্য দিন!");
+
+            try {
+                // ডিপোজিট রিকোয়েস্ট সেভ করা
+                await addDoc(collection(db, "deposit_requests"), {
+                    userId: currentUser.uid,
+                    amount: Number(amount),
+                    trxid: trxid,
+                    method: method,
+                    status: "Pending", // Admin will update this later
+                    createdAt: serverTimestamp()
+                });
+
+                alert("আপনার রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে! অপেক্ষা করুন।");
+                location.reload();
+            } catch (e) {
+                alert("ত্রুটি: " + e.message);
+            }
+        };
+    </script>
+</body>
+</html>
