@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Register - FF Tournament</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center h-screen">
+
+    <div id="authContainer" class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
+        <h2 id="authTitle" class="text-3xl font-extrabold text-orange-500 mb-6 text-center">নতুন একাউন্ট খুলুন</h2>
+        
+        <div class="space-y-4">
+            <input type="text" id="userName" placeholder="পুরো নাম" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:border-orange-500">
+            <input type="email" id="email" placeholder="আপনার ইমেইল" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600">
+            <input type="text" id="userUID" placeholder="ফ্রি ফায়ার UID (e.g. 12345678)" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600">
+            <input type="password" id="password" placeholder="পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600">
+            
+            <button id="btnAction" class="w-full bg-orange-600 hover:bg-orange-700 p-3 rounded-xl font-bold text-lg transition shadow-lg">রেজিস্ট্রেশন করুন</button>
+        </div>
+
+        <p class="mt-6 text-center text-gray-400">
+            ইতোমধ্যে একাউন্ট আছে? 
+            <span id="toggleAuth" class="text-orange-400 cursor-pointer font-bold hover:underline">লগইন করুন</span>
+        </p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // আপনার ফায়ারবেস কনফিগ (আগে যেটা দিয়েছিলেন)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDB15lIz0BwUaErArj-ooETB79iPCZK3D4",
+            authDomain: "bot-864b3.firebaseapp.com",
+            projectId: "bot-864b3",
+            storageBucket: "bot-864b3.firebasestorage.app",
+            messagingSenderId: "82198701869",
+            appId: "1:82198701869:web:3c099992e1c64e285355a4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let isLoginMode = false;
+
+        // লগইন এবং রেজিস্ট্রেশন সুইচ করা
+        document.getElementById('toggleAuth').onclick = () => {
+            isLoginMode = !isLoginMode;
+            document.getElementById('authTitle').innerText = isLoginMode ? "লগইন করুন" : "নতুন একাউন্ট খুলুন";
+            document.getElementById('btnAction').innerText = isLoginMode ? "লগইন" : "রেজিস্ট্রেশন করুন";
+            document.getElementById('userName').style.display = isLoginMode ? "none" : "block";
+            document.getElementById('userUID').style.display = isLoginMode ? "none" : "block";
+        };
+
+        // মেইন অ্যাকশন (Register/Login)
+        document.getElementById('btnAction').onclick = async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const name = document.getElementById('userName').value;
+            const uid = document.getElementById('userUID').value;
+
+            if (isLoginMode) {
+                // লগইন লজিক
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    window.location.href = "index.html"; // সফল হলে হোম পেজে যাবে
+                } catch (e) { alert("ভুল ইমেইল বা পাসওয়ার্ড!"); }
+            } else {
+                // রেজিস্ট্রেশন লজিক
+                try {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+
+                    // ডাটাবেসে ইউজার প্রোফাইল তৈরি
+                    await setDoc(doc(db, "users", user.uid), {
+                        name: name,
+                        ff_uid: uid,
+                        email: email,
+                        wallet: 0,
+                        joinedMatches: []
+                    });
+                    alert("একাউন্ট তৈরি সফল হয়েছে!");
+                    window.location.href = "index.html";
+                } catch (e) { alert("ত্রুটি: " + e.message); }
+            }
+        };
+    </script>
+</body>
+  </html>
