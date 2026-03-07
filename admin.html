@@ -1,1 +1,241 @@
-g
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Admin - Fire Arena</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="flex h-screen overflow-hidden">
+        <div class="w-64 bg-indigo-900 text-white p-6 space-y-8 hidden md:block shadow-2xl">
+            <h1 class="text-2xl font-black italic tracking-tighter text-orange-500">FIRE ARENA <span class="text-white text-xs block not-italic font-normal">ADMIN PANEL</span></h1>
+            <nav class="space-y-2">
+                <a href="#" class="flex items-center p-3 bg-indigo-800 rounded-xl transition"><i class="fas fa-th-large mr-3"></i> ড্যাশবোর্ড</a>
+                <a href="#user-section" class="flex items-center p-3 hover:bg-indigo-800 rounded-xl transition text-gray-300 hover:text-white"><i class="fas fa-users mr-3"></i> ইউজার লিস্ট</a>
+                <a href="#match-section" class="flex items-center p-3 hover:bg-indigo-800 rounded-xl transition text-gray-300 hover:text-white"><i class="fas fa-gamepad mr-3"></i> ম্যাচ কন্ট্রোল</a>
+                <div class="pt-10">
+                    <a href="index.html" target="_blank" class="flex items-center p-3 border border-indigo-700 rounded-xl text-orange-400 hover:bg-indigo-800 transition"><i class="fas fa-external-link-alt mr-3"></i> ওয়েবসাইট দেখুন</a>
+                </div>
+            </nav>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 md:p-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mr-3"><i class="fas fa-plus"></i></div>
+                        <h2 class="text-xl font-bold text-gray-800">নতুন টুর্নামেন্ট তৈরি</h2>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="text" id="tTitle" placeholder="ম্যাচ নাম (e.g. Solo War)" class="p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 ring-indigo-200 col-span-2">
+                        <input type="number" id="tFee" placeholder="এন্ট্রি ফি (৳)" class="p-3 bg-gray-50 border rounded-xl outline-none">
+                        <input type="number" id="tPrize" placeholder="প্রাইজ পুল (৳)" class="p-3 bg-gray-50 border rounded-xl outline-none">
+                        <select id="tMode" class="p-3 bg-gray-50 border rounded-xl outline-none col-span-2 md:col-span-1">
+                            <option value="Solo">Solo</option>
+                            <option value="Duo">Duo</option>
+                            <option value="Squad">Squad</option>
+                        </select>
+                        <input type="number" id="tSlots" placeholder="মোট স্লট" class="p-3 bg-gray-50 border rounded-xl outline-none col-span-2 md:col-span-1">
+                        <input type="datetime-local" id="tTime" class="p-3 bg-gray-50 border rounded-xl outline-none col-span-2">
+                    </div>
+                    <button id="btnPublish" class="mt-6 w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition transform active:scale-95">পাবলিশ করুন</button>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center mr-3"><i class="fas fa-wallet"></i></div>
+                            <h2 class="text-xl font-bold text-gray-800">পেন্ডিং পেমেন্ট</h2>
+                        </div>
+                        <span id="reqCount" class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">0 New</span>
+                    </div>
+                    <div id="requestList" class="space-y-3 max-h-[350px] overflow-y-auto pr-2">
+                        <p class="text-center text-gray-400 py-10 italic">সব রিকোয়েস্ট ক্লিয়ার আছে!</p>
+                    </div>
+                </div>
+
+                <div id="match-section" class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 lg:col-span-1">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mr-3"><i class="fas fa-gamepad"></i></div>
+                        <h2 class="text-xl font-bold text-gray-800">ম্যাচ কন্ট্রোল (Room ID)</h2>
+                    </div>
+                    <div id="adminMatchList" class="space-y-4">
+                        <p class="text-center text-gray-400">লোড হচ্ছে...</p>
+                    </div>
+                </div>
+
+                <div id="user-section" class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 lg:col-span-1">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-3"><i class="fas fa-users"></i></div>
+                        <h2 class="text-xl font-bold text-gray-800">ইউজার ম্যানেজমেন্ট</h2>
+                    </div>
+                    <div id="userListContainer" class="max-h-[500px] overflow-y-auto space-y-3 pr-2">
+                        <p class="text-center text-gray-400">ইউজার ডাটা লোড হচ্ছে...</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, increment, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDB15lIz0BwUaErArj-ooETB79iPCZK3D4",
+            authDomain: "bot-864b3.firebaseapp.com",
+            projectId: "bot-864b3",
+            storageBucket: "bot-864b3.firebasestorage.app",
+            messagingSenderId: "82198701869",
+            appId: "1:82198701869:web:3c099992e1c64e285355a4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // ১. টুর্নামেন্ট পাবলিশ লজিক
+        document.getElementById('btnPublish').onclick = async () => {
+            const title = document.getElementById('tTitle').value;
+            const fee = document.getElementById('tFee').value;
+            const prize = document.getElementById('tPrize').value;
+            const mode = document.getElementById('tMode').value;
+            const slots = document.getElementById('tSlots').value;
+            const time = document.getElementById('tTime').value;
+
+            if(!title || !fee) return alert("দয়া করে নাম এবং ফি লিখুন!");
+
+            try {
+                await addDoc(collection(db, "tournaments"), {
+                    title, fee, prize, mode, slots, time, roomId: "", roomPass: "", status: "Upcoming"
+                });
+                alert("ম্যাচ সফলভাবে পাবলিশ হয়েছে!");
+                location.reload();
+            } catch (e) { alert(e.message); }
+        };
+
+        // ২. পেমেন্ট রিকোয়েস্ট লোড ও অ্যাপ্রুভ
+        async function loadRequests() {
+            const q = query(collection(db, "deposit_requests"), where("status", "==", "Pending"));
+            const querySnapshot = await getDocs(q);
+            const container = document.getElementById('requestList');
+            document.getElementById('reqCount').innerText = querySnapshot.size + " New";
+            
+            if (!querySnapshot.empty) container.innerHTML = "";
+
+            querySnapshot.forEach((docSnap) => {
+                const req = docSnap.data();
+                container.innerHTML += `
+                    <div class="bg-gray-50 p-4 rounded-2xl border flex justify-between items-center shadow-sm">
+                        <div>
+                            <p class="font-bold text-indigo-900">${req.method} - ৳${req.amount}</p>
+                            <p class="text-[10px] text-gray-500 font-mono italic">Trx: ${req.trxid}</p>
+                        </div>
+                        <button class="bg-green-600 text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-green-700 transition shadow-md shadow-green-100" 
+                            onclick="approvePayment('${docSnap.id}', '${req.userId}', ${req.amount})">APPROVE</button>
+                    </div>`;
+            });
+        }
+
+        window.approvePayment = async (docId, userId, amount) => {
+            if(!confirm("আপনি কি পেমেন্টটি ভেরিফাই করেছেন?")) return;
+            try {
+                await updateDoc(doc(db, "users", userId), { wallet: increment(amount) });
+                await deleteDoc(doc(db, "deposit_requests", docId));
+                alert("ব্যালেন্স অ্যাড হয়েছে!"); location.reload();
+            } catch (e) { alert(e.message); }
+        };
+
+        // ৩. রুম ডিটেইলস এবং প্লেয়ার দেখা
+        async function loadAdminTournaments() {
+            const querySnapshot = await getDocs(collection(db, "tournaments"));
+            const container = document.getElementById('adminMatchList');
+            container.innerHTML = "";
+            querySnapshot.forEach((docSnap) => {
+                const match = docSnap.data();
+                container.innerHTML += `
+                    <div class="p-4 border rounded-2xl bg-gray-50 space-y-3">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-bold text-gray-800">${match.title}</p>
+                                <p class="text-[10px] text-gray-500 italic">Room: ${match.roomId || 'N/A'} | Pass: ${match.roomPass || 'N/A'}</p>
+                            </div>
+                            <button onclick="viewPlayers('${docSnap.id}')" class="text-indigo-600 text-[10px] font-bold uppercase"><i class="fas fa-list mr-1"></i> Players</button>
+                        </div>
+                        <button onclick="updateRoom('${docSnap.id}')" class="w-full bg-orange-500 text-white text-xs py-2 rounded-xl font-bold shadow-md shadow-orange-100">Set Room ID / Pass</button>
+                    </div>`;
+            });
+        }
+
+        window.updateRoom = async (matchId) => {
+            const rid = prompt("Enter Room ID:");
+            const rpass = prompt("Enter Room Password:");
+            if(rid && rpass) {
+                await updateDoc(doc(db, "tournaments", matchId), { roomId: rid, roomPass: rpass });
+                alert("রুম তথ্য সেভ হয়েছে!"); loadAdminTournaments();
+            }
+        };
+
+        window.viewPlayers = async (matchId) => {
+            const q = query(collection(db, "joined_players"), where("matchId", "==", matchId));
+            const querySnapshot = await getDocs(q);
+            let players = "ম্যাচে অংশগ্রহণকারী:\n\n";
+            querySnapshot.forEach(doc => { players += `• ${doc.data().playerName} (UID: ${doc.data().playerUID})\n`; });
+            alert(querySnapshot.empty ? "এখনো কেউ জয়েন করেনি।" : players);
+        };
+
+        // ৪. ইউজার লিস্ট + ব্যান/আনব্যান
+        async function loadUserList() {
+            const querySnapshot = await getDocs(collection(db, "users"));
+            const container = document.getElementById('userListContainer');
+            container.innerHTML = "";
+            querySnapshot.forEach((docSnap) => {
+                const user = docSnap.data();
+                const isBanned = user.status === "Banned";
+                container.innerHTML += `
+                    <div class="p-4 bg-white border rounded-2xl flex justify-between items-center shadow-sm">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 ${isBanned ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-400'} rounded-full flex items-center justify-center mr-3">
+                                <i class="fas ${isBanned ? 'fa-user-slash' : 'fa-user'}"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-sm ${isBanned ? 'text-red-400 line-through' : 'text-gray-800'}">${user.name}</p>
+                                <p class="text-[10px] text-gray-400">UID: ${user.ff_uid || 'No UID'}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-indigo-600 font-bold text-sm mb-1">৳${user.wallet}</p>
+                            <button onclick="toggleBan('${docSnap.id}', '${user.status || 'Active'}')" 
+                                class="px-3 py-1 rounded-lg text-[10px] font-bold text-white transition ${isBanned ? 'bg-green-500' : 'bg-red-500'}">
+                                ${isBanned ? 'UNBAN' : 'BAN'}
+                            </button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        window.toggleBan = async (userId, currentStatus) => {
+            const newStatus = currentStatus === "Banned" ? "Active" : "Banned";
+            if(confirm(`আপনি কি ইউজারকে ${newStatus} করতে চান?`)) {
+                await updateDoc(doc(db, "users", userId), { status: newStatus });
+                alert("স্ট্যাটাস আপডেট হয়েছে!"); loadUserList();
+            }
+        };
+
+        // অটো লোড
+        loadRequests();
+        loadAdminTournaments();
+        loadUserList();
+
+    </script>
+</body>
+</html>
