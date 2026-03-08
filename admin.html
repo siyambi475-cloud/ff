@@ -63,6 +63,16 @@
                 </div>
                 <button id="btnUpdateNumbers" class="mt-3 w-full bg-blue-600 text-white py-2 rounded-lg text-xs font-bold">সেভ করুন</button>
             </div>
+
+            <div class="bg-white p-6 rounded-3xl shadow-md border border-gray-100">
+                <h2 class="text-lg font-bold mb-4 text-indigo-600 border-b pb-2"><i class="fas fa-headset mr-2"></i>সাপোর্ট লিঙ্ক আপডেট</h2>
+                <div class="space-y-3">
+                    <input type="text" id="adminLink" placeholder="Admin Contact Link" class="w-full p-2 border rounded-lg text-xs outline-none">
+                    <input type="text" id="groupLink" placeholder="Support Group Link" class="w-full p-2 border rounded-lg text-xs outline-none">
+                    <input type="text" id="communityLink" placeholder="Join Community Link" class="w-full p-2 border rounded-lg text-xs outline-none">
+                </div>
+                <button id="btnSaveSupport" class="mt-3 w-full bg-indigo-600 text-white py-2 rounded-lg text-xs font-bold">লিঙ্ক সেভ করুন</button>
+            </div>
         </div>
 
         <div class="bg-white p-6 rounded-3xl shadow-md border border-gray-100 lg:col-span-2">
@@ -98,10 +108,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- ১. টুর্নামেন্ট তৈরি (Category সহ আপডেট করা হয়েছে) ---
+        // টুর্নামেন্ট তৈরি
         document.getElementById('btnPublish').onclick = async () => {
             const title = document.getElementById('tTitle').value;
-            const category = document.getElementById('tCategory').value; // ক্যাটাগরি ভ্যালু
+            const category = document.getElementById('tCategory').value;
             const fee = Number(document.getElementById('tFee').value);
             const prize = document.getElementById('tPrize').value;
             const pk = Number(document.getElementById('tPerKill').value);
@@ -113,34 +123,36 @@
 
             try {
                 await addDoc(collection(db, "tournaments"), { 
-                    title, 
-                    category, // ডাটাবেসে ক্যাটাগরি সেভ হবে
-                    fee, 
-                    prize, 
-                    perkill: pk, 
-                    mode, 
-                    time, 
-                    totalSlots: slots, 
-                    joinedCount: 0, 
-                    roomId: "", 
-                    roomPass: "", 
-                    status: "Upcoming" 
+                    title, category, fee, prize, perkill: pk, mode, time, 
+                    totalSlots: slots, joinedCount: 0, roomId: "", roomPass: "", status: "Upcoming" 
                 });
                 alert("ম্যাচ সফলভাবে তৈরি হয়েছে!");
                 location.reload();
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
+            } catch (e) { alert("Error: " + e.message); }
         };
 
-        // --- অন্যান্য গ্লোবাল উইন্ডো ফাংশনসমূহ ---
-        
         // পেমেন্ট নম্বর আপডেট
         document.getElementById('btnUpdateNumbers').onclick = async () => {
             const bk = document.getElementById('newBkash').value;
             const ng = document.getElementById('newNagad').value;
             await setDoc(doc(db, "settings", "general"), { bkash: bk, nagad: ng }, { merge: true });
             alert("নম্বর আপডেট হয়েছে!");
+        };
+
+        // সাপোর্ট লিঙ্ক আপডেট (নতুন ফাংশন)
+        document.getElementById('btnSaveSupport').onclick = async () => {
+            const adminContact = document.getElementById('adminLink').value;
+            const supportGroup = document.getElementById('groupLink').value;
+            const community = document.getElementById('communityLink').value;
+
+            if(!adminContact || !supportGroup || !community) return alert("সবগুলো লিঙ্ক দিন!");
+
+            try {
+                await setDoc(doc(db, "settings", "support"), {
+                    adminContact, supportGroup, community
+                }, { merge: true });
+                alert("সাপোর্ট লিঙ্ক আপডেট হয়েছে!");
+            } catch (e) { alert("Error: " + e.message); }
         };
 
         // অ্যাড মানি হ্যান্ডলার
