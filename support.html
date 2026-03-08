@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support - Fire Arena</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-white">
+
+    <nav class="p-4 bg-gray-800 flex items-center shadow-md sticky top-0 z-50">
+        <i class="fas fa-arrow-left mr-4 cursor-pointer text-orange-500" onclick="history.back()"></i>
+        <h1 class="text-lg font-bold">Support & Community</h1>
+    </nav>
+
+    <div class="p-6 flex flex-col items-center">
+        <div class="w-20 h-20 bg-orange-500/10 rounded-full flex items-center justify-center mb-4 border border-orange-500/20">
+            <i class="fas fa-headset text-4xl text-orange-500"></i>
+        </div>
+        <h2 class="text-xl font-bold">কিভাবে সাহায্য করতে পারি?</h2>
+        <p class="text-gray-400 text-sm text-center mt-2 mb-8">যেকোনো সমস্যা বা আলোচনার জন্য নিচের মাধ্যমগুলো ব্যবহার করুন।</p>
+
+        <div id="supportLinks" class="w-full space-y-4">
+            <p class="text-center text-gray-600 animate-pulse">লিঙ্ক লোড হচ্ছে...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDB15lIz0BwUaErArj-ooETB79iPCZK3D4",
+            authDomain: "bot-864b3.firebaseapp.com",
+            projectId: "bot-864b3",
+            storageBucket: "bot-864b3.firebasestorage.app",
+            messagingSenderId: "82198701869",
+            appId: "1:82198701869:web:3c099992e1c64e285355a4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function loadLinks() {
+            try {
+                const docSnap = await getDoc(doc(db, "settings", "support"));
+                const container = document.getElementById('supportLinks');
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    container.innerHTML = `
+                        <a href="${data.adminContact}" target="_blank" class="flex items-center p-5 bg-gray-800 border border-gray-700 rounded-2xl active:scale-95 transition">
+                            <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center mr-4">
+                                <i class="fas fa-user-shield text-xl text-white"></i>
+                            </div>
+                            <span class="font-bold">Admin Contact</span>
+                            <i class="fas fa-external-link-alt ml-auto text-gray-600 text-xs"></i>
+                        </a>
+
+                        <a href="${data.supportGroup}" target="_blank" class="flex items-center p-5 bg-gray-800 border border-gray-700 rounded-2xl active:scale-95 transition">
+                            <div class="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center mr-4">
+                                <i class="fas fa-comments text-xl text-white"></i>
+                            </div>
+                            <span class="font-bold">Support Group</span>
+                            <i class="fas fa-external-link-alt ml-auto text-gray-600 text-xs"></i>
+                        </a>
+
+                        <a href="${data.community}" target="_blank" class="flex items-center p-5 bg-gray-800 border border-gray-700 rounded-2xl active:scale-95 transition">
+                            <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
+                                <i class="fab fa-telegram-plane text-xl text-white"></i>
+                            </div>
+                            <span class="font-bold">Join Community</span>
+                            <i class="fas fa-external-link-alt ml-auto text-gray-600 text-xs"></i>
+                        </a>
+                    `;
+                } else {
+                    container.innerHTML = "<p class='text-center text-red-500'>লিঙ্ক সেট করা নেই! এডমিন থেকে লিঙ্ক আপডেট করুন।</p>";
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('supportLinks').innerHTML = "<p class='text-center text-red-500'>Error loading data.</p>";
+            }
+        }
+        loadLinks();
+    </script>
+</body>
+</html>
