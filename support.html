@@ -10,79 +10,59 @@
 <body class="bg-gray-900 text-white">
 
     <nav class="p-4 bg-gray-800 flex items-center shadow-md sticky top-0 z-50">
-        <i class="fas fa-arrow-left mr-4 cursor-pointer text-orange-500" onclick="history.back()"></i>
-        <h1 class="text-lg font-bold">Support & Community</h1>
+        <i class="fas fa-arrow-left mr-4 cursor-pointer text-orange-500 hover:text-orange-400 transition" onclick="history.back()"></i>
+        <h1 class="text-lg font-bold italic tracking-wide">SUPPORT & COMMUNITY</h1>
     </nav>
 
     <div class="p-6 flex flex-col items-center">
-        <div class="w-20 h-20 bg-orange-500/10 rounded-full flex items-center justify-center mb-4 border border-orange-500/20">
-            <i class="fas fa-headset text-4xl text-orange-500"></i>
+        <div class="w-24 h-24 bg-orange-500/10 rounded-full flex items-center justify-center mb-6 border-2 border-orange-500/20 shadow-inner">
+            <i class="fas fa-headset text-5xl text-orange-500"></i>
         </div>
-        <h2 class="text-xl font-bold">কিভাবে সাহায্য করতে পারি?</h2>
-        <p class="text-gray-400 text-sm text-center mt-2 mb-8">যেকোনো সমস্যা বা আলোচনার জন্য নিচের মাধ্যমগুলো ব্যবহার করুন।</p>
+        
+        <h2 class="text-2xl font-black text-white uppercase italic">কিভাবে সাহায্য করতে পারি?</h2>
+        <p class="text-gray-400 text-sm text-center mt-2 mb-10 px-4">যেকোনো সমস্যা বা টুর্নামেন্ট সম্পর্কে জানতে আমাদের সাথে যোগাযোগ করুন।</p>
 
-        <div id="supportLinks" class="w-full space-y-4">
-            <p class="text-center text-gray-600 animate-pulse">লিঙ্ক লোড হচ্ছে...</p>
+        <div class="w-full space-y-5 max-w-md">
+            
+            <a href="https://t.me/FreeFireArenaBDAdmin" target="_blank" class="flex items-center p-5 bg-gray-800 border border-gray-700 rounded-2xl active:scale-95 transition-all hover:bg-gray-750 group shadow-lg">
+                <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center mr-4 shadow-lg group-hover:bg-indigo-500 transition">
+                    <i class="fas fa-user-shield text-2xl text-white"></i>
+                </div>
+                <div>
+                    <span class="block font-black text-white text-lg leading-tight uppercase italic">Admin Contact</span>
+                    <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">Direct Message</span>
+                </div>
+                <i class="fas fa-chevron-right ml-auto text-gray-600 text-sm"></i>
+            </a>
+
+            <a href="https://t.me/FreeFireArenaBDChat" target="_blank" class="flex items-center p-5 bg-gray-800 border border-gray-700 rounded-2xl active:scale-95 transition-all hover:bg-gray-750 group shadow-lg">
+                <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center mr-4 shadow-lg group-hover:bg-green-500 transition">
+                    <i class="fas fa-comments text-2xl text-white"></i>
+                </div>
+                <div>
+                    <span class="block font-black text-white text-lg leading-tight uppercase italic">Support Group</span>
+                    <span class="text-[10px] text-green-400 font-bold uppercase tracking-widest">Join Discussion</span>
+                </div>
+                <i class="fas fa-chevron-right ml-auto text-gray-600 text-sm"></i>
+            </a>
+
+            <a href="https://t.me/FreeFireArenaBDChat" target="_blank" class="flex items-center p-5 bg-gray-800 border border-gray-700 rounded-2xl active:scale-95 transition-all hover:bg-gray-750 group shadow-lg">
+                <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mr-4 shadow-lg group-hover:bg-blue-400 transition">
+                    <i class="fab fa-telegram-plane text-2xl text-white"></i>
+                </div>
+                <div>
+                    <span class="block font-black text-white text-lg leading-tight uppercase italic">Join Community</span>
+                    <span class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Latest Updates</span>
+                </div>
+                <i class="fas fa-chevron-right ml-auto text-gray-600 text-sm"></i>
+            </a>
+
+        </div>
+
+        <div class="mt-16 text-center">
+            <p class="text-[10px] text-gray-600 font-bold uppercase tracking-[0.3em]">Powered by Fire Arena Pro</p>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDB15lIz0BwUaErArj-ooETB79iPCZK3D4",
-            authDomain: "bot-864b3.firebaseapp.com",
-            projectId: "bot-864b3",
-            storageBucket: "bot-864b3.firebasestorage.app",
-            messagingSenderId: "82198701869",
-            appId: "1:82198701869:web:3c099992e1c64e285355a4"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        async function loadLinks() {
-            try {
-                const docSnap = await getDoc(doc(db, "settings", "support"));
-                const container = document.getElementById('supportLinks');
-                
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    container.innerHTML = `
-                        <a href="${data.adminContact}" target="_blank" class="flex items-center p-5 bg-gray-800 border border-gray-700 rounded-2xl active:scale-95 transition">
-                            <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center mr-4">
-                                <i class="fas fa-user-shield text-xl text-white"></i>
-                            </div>
-                            <span class="font-bold">Admin Contact</span>
-                            <i class="fas fa-external-link-alt ml-auto text-gray-600 text-xs"></i>
-                        </a>
-
-                        <a href="${data.supportGroup}" target="_blank" class="flex items-center p-5 bg-gray-800 border border-gray-700 rounded-2xl active:scale-95 transition">
-                            <div class="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center mr-4">
-                                <i class="fas fa-comments text-xl text-white"></i>
-                            </div>
-                            <span class="font-bold">Support Group</span>
-                            <i class="fas fa-external-link-alt ml-auto text-gray-600 text-xs"></i>
-                        </a>
-
-                        <a href="${data.community}" target="_blank" class="flex items-center p-5 bg-gray-800 border border-gray-700 rounded-2xl active:scale-95 transition">
-                            <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
-                                <i class="fab fa-telegram-plane text-xl text-white"></i>
-                            </div>
-                            <span class="font-bold">Join Community</span>
-                            <i class="fas fa-external-link-alt ml-auto text-gray-600 text-xs"></i>
-                        </a>
-                    `;
-                } else {
-                    container.innerHTML = "<p class='text-center text-red-500'>লিঙ্ক সেট করা নেই! এডমিন থেকে লিঙ্ক আপডেট করুন।</p>";
-                }
-            } catch (error) {
-                console.error(error);
-                document.getElementById('supportLinks').innerHTML = "<p class='text-center text-red-500'>Error loading data.</p>";
-            }
-        }
-        loadLinks();
-    </script>
 </body>
 </html>
