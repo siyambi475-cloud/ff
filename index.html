@@ -7,19 +7,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "f3ab1649-c60a-4ecb-9602-9d61a53e8a73",
-          serviceWorkerParam: { scope: "/ff/" }, 
-          serviceWorkerPath: "OneSignalSDKWorker.js", 
-          allowLocalhostAsSecureOrigin: true,
-        });
-      });
+    <script type="text/javascript">
+        (function(d, t) {
+            var g = d.createElement(t),
+            s = d.getElementsByTagName(t)[0];
+            g.src = "https://cdn.pushalert.co/unified_c5ecf5c035cb762ada1974bf1ae9592c.js";
+            // সাব-ফোল্ডার /ff/ এর জন্য নিচের লাইনটি অত্যন্ত জরুরি
+            g.setAttribute("data-pa-sw-path", "/ff/pa_sw.js");
+            s.parentNode.insertBefore(g, s);
+        }(document, "script"));
     </script>
-
     <style>
         .category-tab::-webkit-scrollbar { display: none; }
         .category-tab { -ms-overflow-style: none; scrollbar-width: none; }
