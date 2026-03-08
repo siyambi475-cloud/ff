@@ -13,10 +13,13 @@
       OneSignalDeferred.push(async function(OneSignal) {
         await OneSignal.init({
           appId: "75d36af2-8d08-483e-9eb5-ba854a18c467",
+          serviceWorkerParam: { scope: "/ff/" }, // সাব-ফোল্ডার স্কোপ
+          serviceWorkerPath: "OneSignalSDKWorker.js", // সার্ভিস ওয়ার্কার ফাইল পাথ
+          allowLocalhostAsSecureOrigin: true,
         });
       });
     </script>
-    </head>
+</head>
 <body class="bg-gray-900 text-white pb-20">
 
     <nav class="p-4 bg-gray-800 flex justify-between items-center sticky top-0 z-50 shadow-md">
@@ -38,7 +41,7 @@
     </div>
 
     <div class="px-4">
-        <h3 class="text-lg font-bold mb-4 flex items-center">
+        <h3 class="text-lg font-bold mt-4 mb-4 flex items-center">
             <i class="fas fa-gamepad text-orange-500 mr-2"></i> চলমান টুর্নামেন্ট সমূহ
         </h3>
         
@@ -92,7 +95,6 @@
         async function loadTournaments() {
             const container = document.getElementById('tournamentContainer');
             const querySnapshot = await getDocs(collection(db, "tournaments"));
-            
             container.innerHTML = ""; 
 
             querySnapshot.forEach((docSnap) => {
@@ -129,4 +131,4 @@
         }
     </script>
 </body>
-        </html>
+</html>
