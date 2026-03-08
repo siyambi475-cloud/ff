@@ -12,7 +12,8 @@
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
         await OneSignal.init({
-          appId: "75d36af2-8d08-483e-9eb5-ba854a18c467",
+          // এখানে আপনার নতুন App ID বসানো হয়েছে
+          appId: "f3ab1649-c60a-4ecb-9602-9d61a53e8a73",
           serviceWorkerParam: { scope: "/ff/" }, 
           serviceWorkerPath: "OneSignalSDKWorker.js", 
           allowLocalhostAsSecureOrigin: true,
@@ -25,11 +26,6 @@
         .category-tab { -ms-overflow-style: none; scrollbar-width: none; }
         .active-tab { background-color: #ea580c !important; color: white !important; border-color: #ea580c !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        
-        /* Pull to Refresh Visual Indicator (Optional) */
-        #refresh-indicator {
-            transition: transform 0.2s ease;
-        }
     </style>
 </head>
 <body class="bg-gray-900 text-white pb-20 overflow-y-auto">
@@ -51,12 +47,10 @@
             <button onclick="window.location.href='support.html'" class="bg-gray-700 w-9 h-9 rounded-full flex items-center justify-center text-orange-500 hover:bg-gray-600 transition">
                 <i class="fas fa-headset text-lg"></i>
             </button>
-
             <div class="bg-gray-700 px-3 py-1 rounded-full flex items-center h-9">
                 <i class="fas fa-wallet text-yellow-500 mr-2 text-sm"></i>
                 <span id="userBalance" class="font-bold text-sm">৳ ০</span>
             </div>
-            
             <i class="fas fa-user-circle text-3xl text-gray-400 cursor-pointer" onclick="window.location.href='profile.html'"></i>
         </div>
     </nav>
@@ -74,11 +68,9 @@
             <h2 class="text-xl font-bold">আজকের স্পেশাল টুর্নামেন্ট!</h2>
             <p class="text-sm opacity-90">জয়েন করুন এবং জিতে নিন আকর্ষণীয় পুরস্কার।</p>
         </div>
-
         <h3 id="displayCategory" class="text-lg font-bold mb-4 flex items-center">
             <i class="fas fa-gamepad text-orange-500 mr-2"></i> সব ম্যাচ
         </h3>
-        
         <div id="tournamentContainer" class="space-y-4">
             <p class="text-center text-gray-500 italic">ম্যাচ লোড হচ্ছে...</p>
         </div>
@@ -105,10 +97,7 @@
         document.addEventListener('touchmove', (e) => {
             const currentY = e.touches[0].pageY;
             const diff = currentY - startY;
-
-            // যদি ইউজার পেজের একদম উপরে থাকে এবং ১৫০ পিক্সেলের বেশি নিচে টানে
             if (window.scrollY === 0 && diff > 150) {
-                // পেজ রিফ্রেশ হবে
                 location.reload();
             }
         }, { passive: true });
@@ -132,7 +121,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- Update System Logic ---
         const currentVersion = "1.0"; 
 
         async function checkUpdate() {
@@ -187,11 +175,7 @@
             container.innerHTML = ""; 
 
             if (querySnapshot.empty) {
-                container.innerHTML = `
-                    <div class="text-center py-10">
-                        <i class="fas fa-folder-open text-gray-700 text-4xl mb-2"></i>
-                        <p class="text-gray-500 text-sm italic">এই ক্যাটাগরিতে বর্তমানে কোনো ম্যাচ নেই!</p>
-                    </div>`;
+                container.innerHTML = `<div class="text-center py-10"><p class="text-gray-500 text-sm italic">কোনো ম্যাচ নেই!</p></div>`;
                 return;
             }
 
