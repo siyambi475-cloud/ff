@@ -24,22 +24,28 @@
         .category-tab::-webkit-scrollbar { display: none; }
         .category-tab { -ms-overflow-style: none; scrollbar-width: none; }
         .active-tab { background-color: #ea580c !important; color: white !important; border-color: #ea580c !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="bg-gray-900 text-white pb-20">
 
     <nav class="p-4 bg-gray-800 flex justify-between items-center sticky top-0 z-50 shadow-md">
         <h1 class="text-xl font-black text-orange-500 italic">FREE FIRE PRO</h1>
-        <div class="flex items-center space-x-4">
-            <div class="bg-gray-700 px-3 py-1 rounded-full flex items-center">
-                <i class="fas fa-wallet text-yellow-500 mr-2"></i>
-                <span id="userBalance" class="font-bold">৳ ০</span>
+        <div class="flex items-center space-x-3">
+            <button onclick="window.location.href='support.html'" class="bg-gray-700 w-9 h-9 rounded-full flex items-center justify-center text-orange-500 hover:bg-gray-600 transition">
+                <i class="fas fa-headset text-lg"></i>
+            </button>
+
+            <div class="bg-gray-700 px-3 py-1 rounded-full flex items-center h-9">
+                <i class="fas fa-wallet text-yellow-500 mr-2 text-sm"></i>
+                <span id="userBalance" class="font-bold text-sm">৳ ০</span>
             </div>
-            <i class="fas fa-user-circle text-2xl text-gray-400 cursor-pointer" onclick="window.location.href='profile.html'"></i>
+            
+            <i class="fas fa-user-circle text-3xl text-gray-400 cursor-pointer" onclick="window.location.href='profile.html'"></i>
         </div>
     </nav>
 
-    <div class="p-4 overflow-x-auto flex space-x-3 category-tab">
+    <div class="p-4 overflow-x-auto flex space-x-3 category-tab no-scrollbar">
         <button onclick="changeCategory('All', this)" class="tab-btn active-tab flex-shrink-0 px-5 py-2 rounded-full bg-gray-800 border border-gray-700 text-sm font-bold transition">All</button>
         <button onclick="changeCategory('Br Match', this)" class="tab-btn flex-shrink-0 px-5 py-2 rounded-full bg-gray-800 border border-gray-700 text-sm font-bold transition">Br Match</button>
         <button onclick="changeCategory('Cs Match', this)" class="tab-btn flex-shrink-0 px-5 py-2 rounded-full bg-gray-800 border border-gray-700 text-sm font-bold transition">Cs Match</button>
@@ -58,11 +64,11 @@
         </h3>
         
         <div id="tournamentContainer" class="space-y-4">
-            <p class="text-center text-gray-500">ম্যাচ লোড হচ্ছে...</p>
+            <p class="text-center text-gray-500 italic">ম্যাচ লোড হচ্ছে...</p>
         </div>
     </div>
 
-    <div class="fixed bottom-0 w-full bg-gray-800 p-3 flex justify-around border-t border-gray-700">
+    <div class="fixed bottom-0 w-full bg-gray-800 p-3 flex justify-around border-t border-gray-700 z-50">
         <button onclick="location.reload()" class="text-orange-500 text-center">
             <i class="fas fa-home text-xl"></i><br><span class="text-xs">Home</span>
         </button>
@@ -108,13 +114,13 @@
         window.changeCategory = (category, btn) => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
             btn.classList.add('active-tab');
-            document.getElementById('displayCategory').innerText = category === 'All' ? 'সব ম্যাচ' : category;
+            document.getElementById('displayCategory').innerHTML = `<i class="fas fa-gamepad text-orange-500 mr-2"></i> ${category === 'All' ? 'সব ম্যাচ' : category}`;
             loadTournaments(category);
         }
 
         async function loadTournaments(category = 'All') {
             const container = document.getElementById('tournamentContainer');
-            container.innerHTML = `<p class="text-center text-gray-500">লোড হচ্ছে...</p>`;
+            container.innerHTML = `<p class="text-center text-gray-500 py-10 italic animate-pulse">খোঁজা হচ্ছে...</p>`;
             
             let q;
             if (category === 'All') {
@@ -127,24 +133,28 @@
             container.innerHTML = ""; 
 
             if (querySnapshot.empty) {
-                container.innerHTML = `<p class="text-center text-gray-500 py-10">এই ক্যাটাগরিতে কোনো ম্যাচ নেই!</p>`;
+                container.innerHTML = `
+                    <div class="text-center py-10">
+                        <i class="fas fa-folder-open text-gray-700 text-4xl mb-2"></i>
+                        <p class="text-gray-500 text-sm italic">এই ক্যাটাগরিতে বর্তমানে কোনো ম্যাচ নেই!</p>
+                    </div>`;
                 return;
             }
 
             querySnapshot.forEach((docSnap) => {
                 const match = docSnap.data();
                 container.innerHTML += `
-                    <div class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 shadow-sm transition transform active:scale-95">
+                    <div class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 shadow-sm transition transform active:scale-[0.98]">
                         <div class="p-4">
                             <div class="flex justify-between items-start mb-2">
                                 <h4 class="text-lg font-bold">${match.title}</h4>
                                 <span class="bg-orange-600 text-[10px] px-2 py-1 rounded uppercase font-bold">${match.mode}</span>
                             </div>
                             <div class="flex justify-between text-sm text-gray-400 mb-4">
-                                <span><i class="far fa-clock mr-1"></i> ${match.time}</span>
-                                <span><i class="fas fa-users mr-1"></i> স্লট: ${match.slots}</span>
+                                <span><i class="far fa-clock mr-1 text-orange-500"></i> ${match.time}</span>
+                                <span><i class="fas fa-users mr-1 text-orange-500"></i> স্লট: ${match.slots || match.totalSlots}</span>
                             </div>
-                            <div class="flex justify-between items-center bg-gray-900 p-3 rounded-lg">
+                            <div class="flex justify-between items-center bg-gray-900 p-3 rounded-lg border border-gray-700/50">
                                 <div class="text-center">
                                     <p class="text-[10px] text-gray-500 uppercase">প্রাইজ পুল</p>
                                     <p class="font-bold text-orange-400">৳ ${match.prize}</p>
@@ -154,7 +164,7 @@
                                     <p class="font-bold text-white">৳ ${match.fee}</p>
                                 </div>
                                 <button onclick="window.location.href='match-details.html?id=${docSnap.id}'" 
-                                    class="bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded-lg text-sm font-bold transition">
+                                    class="bg-orange-600 hover:bg-orange-700 px-5 py-2 rounded-lg text-sm font-bold shadow-md transition">
                                     JOIN
                                 </button>
                             </div>
