@@ -29,6 +29,17 @@
 </head>
 <body class="bg-gray-900 text-white pb-20">
 
+    <div id="updateModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-[999] p-6">
+        <div class="bg-gray-800 border border-orange-500/30 p-8 rounded-3xl w-full max-w-sm text-center shadow-2xl">
+            <div class="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-orange-500/40">
+                <i class="fas fa-cloud-download-alt text-4xl text-orange-500"></i>
+            </div>
+            <h2 class="text-2xl font-black text-white italic uppercase">New Update!</h2>
+            <p class="text-gray-400 text-sm mt-2 mb-8">অ্যাপের নতুন ভার্সন এসেছে। নিরবচ্ছিন্ন সার্ভিসের জন্য এখনই আপডেট করে নিন।</p>
+            <a id="updateBtnLink" href="#" class="block w-full bg-orange-600 hover:bg-orange-700 text-white py-4 rounded-2xl font-black shadow-lg transition active:scale-95 uppercase">Update Now</a>
+        </div>
+    </div>
+
     <nav class="p-4 bg-gray-800 flex justify-between items-center sticky top-0 z-50 shadow-md">
         <h1 class="text-xl font-black text-orange-500 italic">FREE FIRE PRO</h1>
         <div class="flex items-center space-x-3">
@@ -98,19 +109,40 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // --- Update System Logic ---
+        const currentVersion = "1.0"; // এই ফাইলের বর্তমান ভার্সন
+
+        async function checkUpdate() {
+            try {
+                const docSnap = await getDoc(doc(db, "settings", "appUpdate"));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    // যদি ডাটাবেসের ভার্সন কোডের ভার্সন থেকে আলাদা হয়
+                    if (data.version && data.version !== currentVersion) {
+                        const modal = document.getElementById('updateModal');
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                        document.getElementById('updateBtnLink').href = data.url;
+                    }
+                }
+            } catch (error) {
+                console.error("Update check failed:", error);
+            }
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
                     document.getElementById('userBalance').innerText = "৳ " + userDoc.data().wallet;
                 }
+                checkUpdate(); // আপডেট চেক করবে
                 loadTournaments('All');
             } else {
                 window.location.href = "auth.html"; 
             }
         });
 
-        // ক্যাটাগরি পরিবর্তনের ফাংশন
         window.changeCategory = (category, btn) => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
             btn.classList.add('active-tab');
