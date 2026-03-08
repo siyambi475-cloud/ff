@@ -12,7 +12,6 @@
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
         await OneSignal.init({
-          // এখানে আপনার নতুন App ID বসানো হয়েছে
           appId: "f3ab1649-c60a-4ecb-9602-9d61a53e8a73",
           serviceWorkerParam: { scope: "/ff/" }, 
           serviceWorkerPath: "OneSignalSDKWorker.js", 
@@ -120,7 +119,6 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-
         const currentVersion = "1.0"; 
 
         async function checkUpdate() {
@@ -135,9 +133,7 @@
                         document.getElementById('updateBtnLink').href = data.url;
                     }
                 }
-            } catch (error) {
-                console.error("Update check failed:", error);
-            }
+            } catch (error) { console.error("Update check failed:", error); }
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -148,9 +144,7 @@
                 }
                 checkUpdate(); 
                 loadTournaments('All');
-            } else {
-                window.location.href = "auth.html"; 
-            }
+            } else { window.location.href = "auth.html"; }
         });
 
         window.changeCategory = (category, btn) => {
@@ -163,22 +157,13 @@
         async function loadTournaments(category = 'All') {
             const container = document.getElementById('tournamentContainer');
             container.innerHTML = `<p class="text-center text-gray-500 py-10 italic animate-pulse">খোঁজা হচ্ছে...</p>`;
-            
-            let q;
-            if (category === 'All') {
-                q = collection(db, "tournaments");
-            } else {
-                q = query(collection(db, "tournaments"), where("category", "==", category));
-            }
-
+            let q = category === 'All' ? collection(db, "tournaments") : query(collection(db, "tournaments"), where("category", "==", category));
             const querySnapshot = await getDocs(q);
             container.innerHTML = ""; 
-
             if (querySnapshot.empty) {
-                container.innerHTML = `<div class="text-center py-10"><p class="text-gray-500 text-sm italic">কোনো ম্যাচ নেই!</p></div>`;
+                container.innerHTML = `<div class="text-center py-10"><p class="text-gray-500 text-sm italic">ম্যাচ পাওয়া যায়নি!</p></div>`;
                 return;
             }
-
             querySnapshot.forEach((docSnap) => {
                 const match = docSnap.data();
                 container.innerHTML += `
@@ -202,13 +187,10 @@
                                     <p class="font-bold text-white">৳ ${match.fee}</p>
                                 </div>
                                 <button onclick="window.location.href='match-details.html?id=${docSnap.id}'" 
-                                    class="bg-orange-600 hover:bg-orange-700 px-5 py-2 rounded-lg text-sm font-bold shadow-md transition">
-                                    JOIN
-                                </button>
+                                    class="bg-orange-600 hover:bg-orange-700 px-5 py-2 rounded-lg text-sm font-bold shadow-md transition">JOIN</button>
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
         }
     </script>
