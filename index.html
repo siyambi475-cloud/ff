@@ -6,7 +6,17 @@
     <title>FF Tournament - Home</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
+
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "75d36af2-8d08-483e-9eb5-ba854a18c467",
+        });
+      });
+    </script>
+    </head>
 <body class="bg-gray-900 text-white pb-20">
 
     <nav class="p-4 bg-gray-800 flex justify-between items-center sticky top-0 z-50 shadow-md">
@@ -67,7 +77,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // ইউজার লগইন আছে কি না চেক করা এবং ব্যালেন্স লোড করা
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -76,16 +85,15 @@
                 }
                 loadTournaments();
             } else {
-                window.location.href = "auth.html"; // লগইন না থাকলে পাঠিয়ে দিবে
+                window.location.href = "auth.html"; 
             }
         });
 
-        // টুর্নামেন্ট লোড করার ফাংশন
         async function loadTournaments() {
             const container = document.getElementById('tournamentContainer');
             const querySnapshot = await getDocs(collection(db, "tournaments"));
             
-            container.innerHTML = ""; // আগের মেসেজ মুছে ফেলা
+            container.innerHTML = ""; 
 
             querySnapshot.forEach((docSnap) => {
                 const match = docSnap.data();
@@ -121,4 +129,4 @@
         }
     </script>
 </body>
-</html>
+        </html>
