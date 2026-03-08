@@ -25,9 +25,14 @@
         .category-tab { -ms-overflow-style: none; scrollbar-width: none; }
         .active-tab { background-color: #ea580c !important; color: white !important; border-color: #ea580c !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Pull to Refresh Visual Indicator (Optional) */
+        #refresh-indicator {
+            transition: transform 0.2s ease;
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-white pb-20">
+<body class="bg-gray-900 text-white pb-20 overflow-y-auto">
 
     <div id="updateModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-[999] p-6">
         <div class="bg-gray-800 border border-orange-500/30 p-8 rounded-3xl w-full max-w-sm text-center shadow-2xl">
@@ -91,6 +96,24 @@
         </button>
     </div>
 
+    <script>
+        let startY = 0;
+        document.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].pageY;
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            const currentY = e.touches[0].pageY;
+            const diff = currentY - startY;
+
+            // যদি ইউজার পেজের একদম উপরে থাকে এবং ১৫০ পিক্সেলের বেশি নিচে টানে
+            if (window.scrollY === 0 && diff > 150) {
+                // পেজ রিফ্রেশ হবে
+                location.reload();
+            }
+        }, { passive: true });
+    </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -110,14 +133,13 @@
         const db = getFirestore(app);
 
         // --- Update System Logic ---
-        const currentVersion = "1.0"; // এই ফাইলের বর্তমান ভার্সন
+        const currentVersion = "1.0"; 
 
         async function checkUpdate() {
             try {
                 const docSnap = await getDoc(doc(db, "settings", "appUpdate"));
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    // যদি ডাটাবেসের ভার্সন কোডের ভার্সন থেকে আলাদা হয়
                     if (data.version && data.version !== currentVersion) {
                         const modal = document.getElementById('updateModal');
                         modal.classList.remove('hidden');
@@ -136,7 +158,7 @@
                 if (userDoc.exists()) {
                     document.getElementById('userBalance').innerText = "৳ " + userDoc.data().wallet;
                 }
-                checkUpdate(); // আপডেট চেক করবে
+                checkUpdate(); 
                 loadTournaments('All');
             } else {
                 window.location.href = "auth.html"; 
