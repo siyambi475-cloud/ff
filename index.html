@@ -12,8 +12,11 @@
             var g = d.createElement(t),
             s = d.getElementsByTagName(t)[0];
             g.src = "https://cdn.pushalert.co/unified_c5ecf5c035cb762ada1974bf1ae9592c.js";
-            // সাব-ফোল্ডার /ff/ এর জন্য নিচের লাইনটি অত্যন্ত জরুরি
+            
+            // সাব-ফোল্ডারের জন্য এই ২ লাইন অত্যন্ত জরুরি
             g.setAttribute("data-pa-sw-path", "/ff/pa_sw.js");
+            g.setAttribute("data-pa-sw-scope", "/ff/");
+            
             s.parentNode.insertBefore(g, s);
         }(document, "script"));
     </script>
